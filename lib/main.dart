@@ -1,7 +1,5 @@
 
 
-
-
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -31,6 +29,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
      NotificationService().firebaseInit( context);
+    //  NotificationService().setupInteractMessage(context);
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
@@ -41,4 +40,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
