@@ -1,9 +1,11 @@
 
 import 'dart:math';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:pushnotification_functionality/message_screen.dart';
 
 class NotificationService{
 
@@ -50,12 +52,19 @@ void isTokenRefresh()async{
 
 
 
-Future<void>  firebaseInit()async{
+Future<void>  firebaseInit(BuildContext context)async{
   FirebaseMessaging.onMessage.listen((mesage) {
 
     debugPrint(mesage.notification!.title.toString());
     debugPrint(mesage.notification!.body.toString()); 
-    initLocalNotification(mesage) ;
+    debugPrint("messga data from server ++++++++++++${mesage.data.toString()}"); 
+    debugPrint(mesage.data['type']); 
+    debugPrint(mesage.data['id']); 
+    
+
+    
+    initLocalNotification(mesage,context) ;
+
     showNotification(mesage);
   });
   
@@ -67,7 +76,7 @@ Future<void>  firebaseInit()async{
 
 
 
-void initLocalNotification( RemoteMessage message) async {
+void initLocalNotification( RemoteMessage message,BuildContext context) async {
   print("Initializing local notifications...");
 
   var androidInitializationSettings = const AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -78,15 +87,30 @@ void initLocalNotification( RemoteMessage message) async {
     iOS: iosInitializationSettings,
   );
 
-  await _flutterLocalNotificationsPlugin.initialize(
-    initializationSettings,
+  await _flutterLocalNotificationsPlugin.initialize(initializationSettings,
     onDidReceiveNotificationResponse: (payload) {
       print("Received notification response: $payload");
-      // You can add additional handling logic here if needed
+      handleMessage(context,message);
     },
   );
 
   print("Local notifications initialized successfully.");
+}
+
+// ++++++++++++++++++++++++++redirect screen 
+
+void handleMessage(BuildContext context,RemoteMessage message){
+  print("redirect function run +++++");
+   if(message.data['type']=='message from Firebase')
+   {
+    print("function check before navigation +++++++++++++++++=============");
+     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MessageScreen(),));
+     print("redirect succesfully +++++++++++++++++=============");
+
+   }
+   else{
+    print("redirect unsucesss +++++++++++++++++=============");
+   }
 }
 
 
@@ -111,6 +135,7 @@ Future<void> showNotification(RemoteMessage message) async {
   );
 
   // Create DarwinNotificationDetails for iOS (no changes needed)
+
   DarwinNotificationDetails darwinNotificationDetails = const DarwinNotificationDetails(
     presentAlert: true,
     presentBadge: true,
@@ -138,6 +163,21 @@ Future<void> showNotification(RemoteMessage message) async {
       notificationDetails,
     );
   });
+}
+
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ when our closed than show notification ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+//  Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message)async{
+//    await Firebase.initializeApp();
+//  }  
+
+ @pragma('vm:entry-point')
+ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  print(message.notification!.title.toString());
+  debugPrint("message in background+++++++++++++++++++++++++++++++++ $message");
 }
 
 
