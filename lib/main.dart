@@ -1,6 +1,5 @@
 
 
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +12,6 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
 );
- 
 NotificationService notificationService = NotificationService();
 FirebaseMessaging.onBackgroundMessage(notificationService.firebaseMessagingBackgroundHandler);
 
@@ -24,13 +22,18 @@ FirebaseMessaging.onBackgroundMessage(notificationService.firebaseMessagingBackg
   runApp(const MyApp());
 }
 
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-     NotificationService().firebaseInit( context);
+     NotificationService().firebaseInit(context);
     //  NotificationService().setupInteractMessage(context);
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),

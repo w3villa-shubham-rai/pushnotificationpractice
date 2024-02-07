@@ -5,13 +5,21 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:pushnotification_functionality/main.dart';
 import 'package:pushnotification_functionality/message_screen.dart';
 
 class NotificationService{
 
 final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin=FlutterLocalNotificationsPlugin();
 
+Future<void> initializeNotifications(BuildContext context) async {
+  NotificationService notificationService = NotificationService();
+  FirebaseMessaging.onBackgroundMessage(notificationService.firebaseMessagingBackgroundHandler);
 
+  await NotificationService.initialize();
+  await NotificationService().getDeviceToken();
+  await NotificationService().firebaseInit(context);
+}
 
 // ++++++++++++++++++++++++++++++++++++++++++intialize notification property here ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -51,8 +59,7 @@ void isTokenRefresh()async{
 
 
 
-
-Future<void>  firebaseInit(BuildContext context)async{
+Future<void> firebaseInit(BuildContext context)async{
   FirebaseMessaging.onMessage.listen((mesage) {
 
     debugPrint(mesage.notification!.title.toString());
@@ -60,10 +67,10 @@ Future<void>  firebaseInit(BuildContext context)async{
     debugPrint("messga data from server ++++++++++++${mesage.data.toString()}"); 
     debugPrint(mesage.data['type']); 
     debugPrint(mesage.data['id']); 
-    
+    debugPrint("context print $context");
 
     
-    initLocalNotification(mesage,context) ;
+    initLocalNotification(mesage, context) ;
 
     showNotification(mesage);
   });
@@ -97,20 +104,32 @@ void initLocalNotification( RemoteMessage message,BuildContext context) async {
   print("Local notifications initialized successfully.");
 }
 
-// ++++++++++++++++++++++++++redirect screen 
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++redirect screen ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-void handleMessage(BuildContext context,RemoteMessage message){
+void handleMessage(BuildContext context, RemoteMessage message) {
   print("redirect function run +++++");
-   if(message.data['type']=='message from Firebase')
-   {
-    print("function check before navigation +++++++++++++++++=============");
-     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MessageScreen(),));
-     print("redirect succesfully +++++++++++++++++=============");
+   debugPrint("context print $context");
+  try {
+    if (message.data['type'] == 'message from Firebase') {
+      print("function check before navigation +++++++++++++++++=============");
+      if(context.mounted) {
+        debugPrint('Context is Mounted  +++++++++++');
+        // Navigator.push(
+        // context,
+        // MaterialPageRoute(builder: (context) => const MessageScreen()));
+        navigatorKey.currentState?.push(MaterialPageRoute(builder: (context) => const MessageScreen()));
+      }
+      else{
 
-   }
-   else{
-    print("redirect unsucesss +++++++++++++++++=============");
-   }
+        debugPrint('Context is not Mounted  +++++++++++');
+      }
+      print("redirect successfully +++++++++++++++++=============");
+    } else {
+      print("redirect unsuccessful +++++++++++++++++=============");
+    }
+  } catch (e) {
+    print("Error occurred during navigation: $e");
+  }
 }
 
 
